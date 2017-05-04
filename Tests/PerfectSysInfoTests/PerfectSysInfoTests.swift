@@ -26,6 +26,11 @@ class PerfectSysInfoTests: XCTestCase {
         return
       }
       print(cpu)
+      guard let mem = SysInfo.Memory else {
+        XCTFail("MEM FAULT")
+        return
+      }
+      print(mem)
     }
 
 

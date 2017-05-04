@@ -24,6 +24,21 @@ import Darwin
 
 public extension String {
 
+  public var trimmed: String {
+    var buf = [UInt8]()
+    var trimming = true
+    for c in self.utf8 {
+      if trimming && c < 33 { continue }
+      trimming = false
+      buf.append(c)
+    }//end ltrim
+    while let last = buf.last, last < 33 {
+      buf.removeLast()
+    }//end rtrim
+    buf.append(0)
+    return String(cString: buf)
+  }//end trim
+
   /// split a string into an array of lines
   public var asLines: [String] {
     get {
@@ -126,19 +141,19 @@ public class SysInfo {
       let count = Int(processorCount)
       for i in 0 ... count - 1 {
         let user = cpuLoad[i].cpu_ticks.0
-        let idle = cpuLoad[i].cpu_ticks.2
         let system = cpuLoad[i].cpu_ticks.1
+        let idle = cpuLoad[i].cpu_ticks.2
         let nice = cpuLoad[i].cpu_ticks.3
         lines.append("cpu\(i) \(user) \(nice) \(system) \(idle)")
         totalUser += user
-        totalIdle += idle
         totalSystem += system
+        totalIdle += idle
         totalNice += nice
       }//next
       let cnt = UInt32(count)
       totalUser /= cnt
-      totalIdle /= cnt
       totalSystem /= cnt
+      totalIdle /= cnt
       totalNice /= cnt
       lines.append("cpu \(totalUser) \(totalNice) \(totalSystem) \(totalIdle)")
     #endif
@@ -155,6 +170,28 @@ public class SysInfo {
           return "\(title):{\(res)}"
         }.joined(separator: ",")
       return "{\(json)}"
+    }
+  }
+
+  public static var Memory: String? {
+    get {
+      #if os(Linux)
+        guard let content = "/proc/meminfo".asFile else { return nil }
+      let json = content.utf8.split(separator: 10).map { line -> String in
+        let lines = line.split(separator: 58).map { String(describing: $0) }
+        let key = lines[0]
+        guard lines.count > 1, let str = strdup(lines[1]) else { return "" }
+        if let kb = strstr(str, "kB") {
+          kb.pointee = 0
+        }//end if
+        let value = String(cString: str).trimmed
+        free(str)
+        return "\"\(key)\":\(value)"
+      }.joined(separator: ",")
+        return "{\(json)}"
+      #else
+        return nil
+      #endif
     }
   }
 }
