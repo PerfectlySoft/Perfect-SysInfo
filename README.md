@@ -156,7 +156,7 @@ And here is a typical mac OS X memory summary, which indicates that there is abo
 
 ### Network Traffic
 
-Call static property `SysInfo.Net` will return total traffic summary from all interfaces as a tuple `(i: Int, o: Int)?` where `i` stands for receiving and `o` for transmitting, both in KB:
+Call static property `SysInfo.Net` will return total traffic summary from all interfaces as a tuple array `[(interface: String, i: Int, o: Int)]` where interface represents the network interface name, `i` stands for receiving and `o` for transmitting, both in KB:
 
 ``` swift
 
@@ -166,7 +166,33 @@ if let net = SysInfo.Net {
 
 ```
 
-If success, it will print something like `(i: 5012, o: 1051)` which means 5 Megabytes of incoming and 1 Megabytes of outgoing.
+If success, it will print something like these mac  / linux outputs:
+
+```
+// typical mac os x network summary, where the only physical network adapter "en0" has 2MB incoming data totally.
+[
+  (interface: "lo0", i: 1030, o: 0),
+  (interface: "gif0", i: 0, o: 0),
+  (interface: "stf0", i: 0, o: 0),
+  (interface: "en0", i: 2158, o: 0),
+  (interface: "en1", i: 0, o: 0),
+  (interface: "en2", i: 0, o: 0),
+  (interface: "bridge0", i: 0, o: 0),
+  (interface: "p2p0", i: 0, o: 0),
+  (interface: "awdl0", i: 9, o: 0),
+  (interface: "utun0", i: 0, o: 0),
+  (interface: "vboxnet0", i: 26, o: 0)
+]
+
+// typical linux network summary, where the only physical network adapter "enp0s3" has received 4MB data and sent out 74KB in the same time.
+[
+  (interface: "enp0s8", i: 527, o: 901),
+  (interface: "enp0s3", i: 4354, o: 74),
+  (interface: "lo", i: 840, o: 840),
+  (interface: "virbr0", i: 0, o: 0),
+  (interface: "virbr0-nic", i: 0, o: 0)
+]
+```
 
 ## Issues
 

@@ -112,20 +112,72 @@ extension String {
 
 public class SysInfo {
 
-  /// return total traffic summary from all interfaces, 
-  /// i for receiving and o for transmitting, both in KB
-  public static var Net: (i: Int, o: Int)? {
+  #if os(Linux)
+  #else
+  internal static var interfaces: [String]   {
     get {
-      var io = (i: 0, o: 0)
+      var ifaces = [String]()
+      var mib = [CTL_NET, PF_ROUTE, 0, 0, NET_RT_IFLIST, 0]
+      let NULL = UnsafeMutableRawPointer(bitPattern: 0)
+      _ = mib.withUnsafeMutableBufferPointer { ptr -> Bool in
+
+        guard let pmib = ptr.baseAddress else { return false }
+
+        var len = 0
+        guard 0 == sysctl(pmib, 6, NULL, &len, NULL, 0), len > 0
+          else { return false }
+
+        let buf = UnsafeMutablePointer<Int8>.allocate(capacity: len)
+        if 0 == sysctl(pmib, 6, buf, &len, NULL, 0) {
+          var cursor = 0
+          repeat {
+            cursor = buf.advanced(by: cursor).withMemoryRebound(to: if_msghdr.self, capacity: MemoryLayout<if_msghdr>.size) { pIfm -> Int in
+              let ifm = pIfm.pointee
+              if integer_t(ifm.ifm_type) == RTM_IFINFO {
+                let interface = pIfm.advanced(by: 1).withMemoryRebound(to: Int8.self, capacity: 20) { sdl -> String in
+                  let size = Int(sdl.advanced(by: 5).pointee)
+                  let buf = sdl.advanced(by: 8)
+                  buf.advanced(by: size).pointee = 0
+                  let name = String(cString: buf)
+                  return name
+                }//end if
+                if !interface.trimmed.isEmpty {
+                  ifaces.append(interface)
+                }//end if
+              }//end if
+              cursor += Int(ifm.ifm_msglen)
+              return cursor
+            }//end bound
+          } while (cursor < len)
+        }//end if
+        buf.deallocate(capacity: len)
+        return true
+      }//end pointer
+      return ifaces
+    }//end get
+  }
+  #endif
+  /// return total traffic summary from all interfaces,
+  /// i for receiving and o for transmitting, both in KB
+  public static var Net: [(interface: String, i: Int, o: Int)] {
+    get {
+
+      var io = [(interface: String, i: Int, o: Int)]()
       #if os(Linux)
-        guard let content = "/proc/net/dev".asFile else { return nil }
-        content.asLines.map { line -> String in
-          if let column = strchr(line, 58) {
-            return String(cString: column.advanced(by: 1))
+        guard let content = "/proc/net/dev".asFile else { return [] }
+        content.asLines.map { line -> (String, String) in
+          guard let str = strdup(line) else { return ("", "") }
+          if let column = strchr(str, 58) {
+            let value = String(cString: column.advanced(by: 1))
+            column.pointee = 0
+            let key = String(cString: str)
+            free(str)
+            return (key, value)
           } else {
-            return ""
+            free(str)
+            return ("", "")
           }
-          }.filter { !$0.isEmpty } .forEach { line in
+          }.filter { !$0.0.isEmpty } .forEach { tag, line in
             guard let str = strdup(line) else { return }
             var numbers = [Int]()
             let delimiter = " \t\n\r"
@@ -136,10 +188,10 @@ public class SysInfo {
             }//end while
             free(str)
             if numbers.count < 9 { return }
-            io.i += numbers[0]
-            io.o += numbers[8]
+            io.append((interface: tag.trimmed, i: numbers[0] / 1024, o: numbers[8] / 1024))
         }
       #else
+        let ifaces = interfaces
         var mib = [CTL_NET, PF_ROUTE, 0, 0, NET_RT_IFLIST2]
         let NULL = UnsafeMutableRawPointer(bitPattern: 0)
         guard (mib.withUnsafeMutableBufferPointer { ptr -> Bool in
@@ -150,14 +202,22 @@ public class SysInfo {
           let buf = UnsafeMutablePointer<Int8>.allocate(capacity: len)
           if 0 == sysctl(ptr.baseAddress, 6, buf, &len, NULL, 0) {
             var cursor = 0
+            var index = 0
             repeat {
               cursor = buf.advanced(by: cursor).withMemoryRebound(to: if_msghdr.self, capacity: MemoryLayout<if_msghdr>.size) { pIfm -> Int in
                 let ifm = pIfm.pointee
                 cursor += Int(ifm.ifm_msglen)
                 if integer_t(ifm.ifm_type) == RTM_IFINFO2 {
-                  pIfm.withMemoryRebound(to: if_msghdr2.self, capacity: MemoryLayout<if_msghdr2>.size) { pIfm2 in
-                    io.i += Int(pIfm2.pointee.ifm_data.ifi_ibytes)
-                    io.0 += Int(pIfm2.pointee.ifm_data.ifi_obytes)
+                  pIfm.withMemoryRebound(to: if_msghdr2.self, capacity: MemoryLayout<if_msghdr2>.size) {
+                    pIfm2 in
+                    let pd = pIfm.pointee
+                    if index < ifaces.count {
+                      io.append((interface: ifaces[index],
+                                 i: Int(pd.ifm_data.ifi_ibytes) / 1024,
+                                 o: Int(pd.ifm_data.ifi_obytes) / 1024
+                      ))
+                    }//end if
+                    index += 1
                   }//end ifm2
                 }//end if
                 return cursor
@@ -167,10 +227,10 @@ public class SysInfo {
           }//end if
           return true
         }) else {
-          return nil
+          return []
         }//end buf
       #endif
-      return (i: io.i / 1024, o: io.o / 1024)
+      return io
     }
   }
 
@@ -205,8 +265,6 @@ public class SysInfo {
       guard 0 == host_processor_info(mach_host_self(), PROCESSOR_CPU_LOAD_INFO, &processorCount, &pCPULoadArray, &processorMsgCount),
       let cpuLoadArray = pCPULoadArray
         else { return [:] }
-      //print(CPU_STATE_MAX, CPU_STATE_IDLE, CPU_STATE_NICE, CPU_STATE_USER, CPU_STATE_SYSTEM)
-      //4 2 3 0 1
       let cpuLoad = cpuLoadArray.withMemoryRebound(
         to: processor_cpu_load_info.self,
         capacity: Int(processorCount) * MemoryLayout<processor_cpu_load_info>.size)
@@ -217,6 +275,8 @@ public class SysInfo {
       var lines: [String:[String:Int]] = [:]
       let count = Int(processorCount)
       for i in 0 ... count - 1 {
+        // CPU_STATE_MAX = 4, CPU_STATE_IDLE = 2, CPU_STATE_NICE = 3,
+        // CPU_STATE_USER = 0, CPU_STATE_SYSTEM = 1
         let user = Int(cpuLoad[i].cpu_ticks.0)
         let system = Int(cpuLoad[i].cpu_ticks.1)
         let idle = Int(cpuLoad[i].cpu_ticks.2)

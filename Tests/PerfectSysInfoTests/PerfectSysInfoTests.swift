@@ -38,7 +38,8 @@ class PerfectSysInfoTests: XCTestCase {
     print(mem)
   }
   func testNET() {
-    guard let net = SysInfo.Net else {
+    let net = SysInfo.Net
+    guard net.count >  0 else {
       XCTFail("NET FAULT")
       return
     }

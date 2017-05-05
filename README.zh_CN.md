@@ -158,7 +158,7 @@ print(SysInfo.Memory)
 
 ### 网络流量
 
-调用静态属性 `SysInfo.Net` 可以获得当前所有网卡流量统计，以双元组 `(i: Int, o: Int)?` 统计，其中 `i` 表示接收字节数，`o` 表示发送字节数，二者单位都是“KB”（千字节）
+调用静态属性 `SysInfo.Net` 可以获得当前所有网卡流量统计，以三元组数组 `[(interface: String, i: Int, o: Int)]` 统计，其中`interface`为网络适配器名称， `i` 表示接收字节数，`o` 表示发送字节数，二者单位都是“KB”（千字节）
 
 ``` swift
 
@@ -168,7 +168,34 @@ if let net = SysInfo.Net {
 
 ```
 
-如果调用成功，上面的例子能够打印出类似 `(i: 5012, o: 1051)`的结果，这意味这当前累计收到5MB数据，并同时发出了1MB数据。 
+
+如果调用成功，则会根据操作系统是 mac 还是 linux 不同，输出以下结果:
+
+```
+// 典型的 mac OS X 网络统计结果，可以看到其中真正的网卡"en0"收到了2MB数据。
+[
+  (interface: "lo0", i: 1030, o: 0),
+  (interface: "gif0", i: 0, o: 0),
+  (interface: "stf0", i: 0, o: 0),
+  (interface: "en0", i: 2158, o: 0),
+  (interface: "en1", i: 0, o: 0),
+  (interface: "en2", i: 0, o: 0),
+  (interface: "bridge0", i: 0, o: 0),
+  (interface: "p2p0", i: 0, o: 0),
+  (interface: "awdl0", i: 9, o: 0),
+  (interface: "utun0", i: 0, o: 0),
+  (interface: "vboxnet0", i: 26, o: 0)
+]
+
+// 典型的 Linux 网络统计结果，可以看到其中真正的网卡 "enp0s3" 收到了 4MB 数据并发出了 74KB 字节。
+[
+  (interface: "enp0s8", i: 527, o: 901),
+  (interface: "enp0s3", i: 4354, o: 74),
+  (interface: "lo", i: 840, o: 840),
+  (interface: "virbr0", i: 0, o: 0),
+  (interface: "virbr0-nic", i: 0, o: 0)
+]
+```
 
 
 ### 问题报告、内容贡献和客户支持
