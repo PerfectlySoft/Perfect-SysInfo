@@ -20,21 +20,21 @@ import XCTest
 @testable import PerfectSysInfo
 
 class PerfectSysInfoTests: XCTestCase {
-    func testExample() {
-      guard let cpu = SysInfo.CPU else {
-        XCTFail("CPU FAULT")
-        return
-      }
-      print(cpu)
-      guard let mem = SysInfo.Memory else {
-        XCTFail("MEM FAULT")
-        return
-      }
-      print(mem)
+  func testExample() {
+    let cpu = SysInfo.CPU
+    guard cpu.count > 0 else {
+      XCTFail("CPU FAULT")
+      return
     }
-
-
-    static var allTests = [
-        ("testExample", testExample),
+    print(cpu)
+    let mem = SysInfo.Memory
+    guard mem.count > 0 else {
+      XCTFail("MEM FAULT")
+      return
+    }
+    print(mem)
+  }
+  static var allTests = [
+    ("testExample", testExample),
     ]
 }

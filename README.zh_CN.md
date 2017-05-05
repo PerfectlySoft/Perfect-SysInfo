@@ -45,6 +45,118 @@
 
 请确保您的系统已经安装了Swift 3.1工具链。
 
+
+## 快速上手
+
+首先请在您的 Package.swift 文件中增加依存关系：
+
+``` swift
+
+.Package(url: "https://github.com/PerfectlySoft/Perfect-SysInfo.git", majorVersion: 1)
+
+```
+
+在源程序中导入函数库：
+
+``` swift
+
+import PerfectSysInfo
+
+```
+
+之后您就可以使用SysInfo 类函数了。
+
+### CPU 用量
+
+调用系统静态变量 `SysInfo.CPU` 可以获得所有处理器内核用量，返回结果为字典形式`[String: [String: Int]]`，举例如下：
+
+``` swift
+
+print(SysInfo.CPU)
+
+/*
+典型的单核处理器统计结果：
+
+[
+  "cpu0":
+    ["nice": 1201, "system": 3598, "user": 8432, "idle": 8657606],
+  "cpu":
+    ["nice": 1201, "system": 3598, "user": 8432, "idle": 8657606]
+]
+
+下面是另外一个例子，8核处理器统计结果：
+[
+  "cpu3":
+    ["user": 18095, "idle": 9708265, "nice": 0, "system": 16177],
+  "cpu5":
+    ["user": 18032, "idle": 9708329, "nice": 0, "system": 16079],
+  "cpu7":
+    ["user": 18186, "idle": 9707892, "nice": 0, "system": 16285],
+  "cpu":
+    ["user": 344301, "idle": 9201762, "nice": 0, "system": 196763],
+  "cpu0":
+    ["user": 730263, "idle": 8387000, "nice": 0, "system": 626684],
+  "cpu2":
+    ["user": 648287, "idle": 8799969, "nice": 0, "system": 294749],
+  "cpu1":
+    ["user": 17708, "idle": 9708996, "nice": 0, "system": 15950],
+  "cpu4":
+    ["user": 647701, "idle": 8800643, "nice": 0, "system": 294544],
+  "cpu6": ["user": 656136, "idle": 8793002, "nice": 0, "system": 293640]]
+*/
+
+```
+
+返回的字典为 `N+1` 组数据，其中 N是内核数，命名分别为"cpu0"、"cpu1" ... "cpu N-1"，单独的命名"cpu"为所有内核平均综合结果。
+每组数据都会包括 `idle`（空闲）、`user`（用户）、`system`（系统）和`nice`（调度）四个统计值。通常`idle`应该尽量大一些，表示系统不是那么繁忙。
+
+### 内存用量
+
+调用静态属性 `SysInfo.Memory` 会返回另外一个字典`[String: Int]` 用于表示内存用量，单位是 ** MB （兆字节）**:
+
+``` swift
+
+print(SysInfo.Memory)
+
+```
+
+** 注意 ** 由于该信息会因操作系统而表述方法不一样，因此请在调用前用条件编译选项`#if os(Linux) #else #endif`来判定操作系统类型。每个指标定义已经超出本文的范围，详细内容请参考具体的操作系统使用手册。
+
+比如调用上述命令后，一个典型的Linux系统将输出如下报告（1G内存，大约599兆可用）：
+
+```
+[
+  "Inactive": 283, "MemTotal": 992, "CmaFree": 0,
+  "VmallocTotal": 33554431, "CmaTotal": 0, "Mapped": 74,
+  "SUnreclaim": 14, "Writeback": 0, "Active(anon)": 98,
+  "Shmem": 26, "PageTables": 7, "VmallocUsed": 0,
+  "MemFree": 98, "Inactive(file)": 179, "SwapCached": 0,
+  "HugePages_Total": 0, "Inactive(anon)": 104, "HugePages_Rsvd": 0,
+  "Buffers": 21, "SReclaimable": 39, "Cached": 613,
+  "Mlocked": 3, "SwapTotal": 1021, "NFS_Unstable": 0,
+  "CommitLimit": 1518, "Hugepagesize": 2, "SwapFree": 1016,
+  "WritebackTmp": 0, "Committed_AS": 1410, "AnonHugePages": 130,
+  "DirectMap2M": 966, "Unevictable": 3, "HugePages_Surp": 0,
+  "Dirty": 3, "HugePages_Free": 0, "MemAvailable": 599,
+  "Active(file)": 426, "Slab": 54, "Active": 525,
+  "KernelStack": 2, "VmallocChunk": 0, "AnonPages": 177,
+  "Bounce": 0, "HardwareCorrupted": 0, "DirectMap4k": 57
+]
+```
+
+而下面则是一个典型的mac OS X内存摘要，看起来还有 4.5GB 空闲内存：
+
+```
+[
+  "hits": 0, "faults": 3154324, "cow": 31476,
+  "wired": 3576, "reactivations": 366, "zero_filled": 2296248,
+  "pageins": 13983, "lookups": 1021, "pageouts": 0,
+  "active": 6967, "free": 4455, "inactive": 1008
+]
+
+```
+
+
 ### 问题报告、内容贡献和客户支持
 
 我们目前正在过渡到使用JIRA来处理所有源代码资源合并申请、修复漏洞以及其它有关问题。因此，GitHub 的“issues”问题报告功能已经被禁用了。
