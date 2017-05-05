@@ -191,6 +191,7 @@ public class SysInfo {
           }//end if
           let value = String(cString: str).trimmed
           stat[key] = (Int(value) ?? 0) / 1024
+          free(str)
         }
         return stat
       #else
