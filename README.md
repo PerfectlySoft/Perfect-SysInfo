@@ -169,7 +169,9 @@ if let net = SysInfo.Net {
 If success, it will print something like these mac  / linux outputs:
 
 ```
-// typical mac os x network summary, where the only physical network adapter "en0" has 2MB incoming data totally.
+// typical mac os x network summary, where the only physical network
+// adapter "en0" has 2MB incoming data totally.
+
 [
   (interface: "lo0", i: 1030, o: 0),
   (interface: "gif0", i: 0, o: 0),
@@ -184,7 +186,9 @@ If success, it will print something like these mac  / linux outputs:
   (interface: "vboxnet0", i: 26, o: 0)
 ]
 
-// typical linux network summary, where the only physical network adapter "enp0s3" has received 4MB data and sent out 74KB in the same time.
+// typical linux network summary, where the only physical network
+// adapter "enp0s3" has received 4MB data and sent out 74KB in the same time.
+
 [
   (interface: "enp0s8", i: 527, o: 901),
   (interface: "enp0s3", i: 4354, o: 74),
