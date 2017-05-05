@@ -18,15 +18,18 @@
 //
 import XCTest
 @testable import PerfectSysInfo
+import Foundation
 
 class PerfectSysInfoTests: XCTestCase {
-  func testExample() {
+  func testCPU() {
     let cpu = SysInfo.CPU
     guard cpu.count > 0 else {
       XCTFail("CPU FAULT")
       return
     }
     print(cpu)
+  }
+  func testMEM() {
     let mem = SysInfo.Memory
     guard mem.count > 0 else {
       XCTFail("MEM FAULT")
@@ -34,7 +37,30 @@ class PerfectSysInfoTests: XCTestCase {
     }
     print(mem)
   }
+  func testNET() {
+    guard let net = SysInfo.Net else {
+      XCTFail("NET FAULT")
+      return
+    }
+    print(net)
+  }
+
+  func testLEAK() {
+    let exp = self.expectation(description: "leak")
+    for _ in 0 ... 1000 {
+      _ = SysInfo.CPU
+      _ = SysInfo.Memory
+      _ = SysInfo.Net
+      usleep(10000)
+    }
+    exp.fulfill()
+    waitForExpectations(timeout: 1) { _ in }
+  }
+  
   static var allTests = [
-    ("testExample", testExample),
+    ("testCPU", testCPU),
+    ("testMEM", testMEM),
+    ("testNET", testNET),
+    ("testLEAK", testLEAK),
     ]
 }

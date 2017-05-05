@@ -112,6 +112,68 @@ extension String {
 
 public class SysInfo {
 
+  /// return total traffic summary from all interfaces, 
+  /// i for receiving and o for transmitting, both in KB
+  public static var Net: (i: Int, o: Int)? {
+    get {
+      var io = (i: 0, o: 0)
+      #if os(Linux)
+        guard let content = "/proc/net/dev".asFile else { return nil }
+        content.asLines.map { line -> String in
+          if let column = strchr(line, 58) {
+            return String(cString: column.advanced(by: 1))
+          } else {
+            return ""
+          }
+          }.filter { !$0.isEmpty } .forEach { line in
+            guard let str = strdup(line) else { return }
+            var numbers = [Int]()
+            let delimiter = " \t\n\r"
+            var token = strtok(str, delimiter)
+            while let tok = token {
+              numbers.append(Int(String(cString: tok)) ?? 0)
+              token = strtok(nil, delimiter)
+            }//end while
+            free(str)
+            if numbers.count < 9 { return }
+            io.i += numbers[0]
+            io.o += numbers[8]
+        }
+      #else
+        var mib = [CTL_NET, PF_ROUTE, 0, 0, NET_RT_IFLIST2]
+        let NULL = UnsafeMutableRawPointer(bitPattern: 0)
+        guard (mib.withUnsafeMutableBufferPointer { ptr -> Bool in
+          var len = 0
+          guard 0 == sysctl(ptr.baseAddress, 6, NULL, &len, NULL, 0)
+            else { return false }
+
+          let buf = UnsafeMutablePointer<Int8>.allocate(capacity: len)
+          if 0 == sysctl(ptr.baseAddress, 6, buf, &len, NULL, 0) {
+            var cursor = 0
+            repeat {
+              cursor = buf.advanced(by: cursor).withMemoryRebound(to: if_msghdr.self, capacity: MemoryLayout<if_msghdr>.size) { pIfm -> Int in
+                let ifm = pIfm.pointee
+                cursor += Int(ifm.ifm_msglen)
+                if integer_t(ifm.ifm_type) == RTM_IFINFO2 {
+                  pIfm.withMemoryRebound(to: if_msghdr2.self, capacity: MemoryLayout<if_msghdr2>.size) { pIfm2 in
+                    io.i += Int(pIfm2.pointee.ifm_data.ifi_ibytes)
+                    io.0 += Int(pIfm2.pointee.ifm_data.ifi_obytes)
+                  }//end ifm2
+                }//end if
+                return cursor
+              }//end bound
+            } while (cursor < len)
+            buf.deallocate(capacity: len)
+          }//end if
+          return true
+        }) else {
+          return nil
+        }//end buf
+      #endif
+      return (i: io.i / 1024, o: io.o / 1024)
+    }
+  }
+
   /// return physical CPU information
   public static var CPU: [String: [String: Int]] {
     get {
@@ -212,6 +274,6 @@ public class SysInfo {
         pStat.deallocate(capacity: size)
         return stat
       #endif
-    }
-  }
+    }//end get
+  }//end var
 }

@@ -154,6 +154,20 @@ And here is a typical mac OS X memory summary, which indicates that there is abo
 
 ```
 
+### Network Traffic
+
+Call static property `SysInfo.Net` will return total traffic summary from all interfaces as a tuple `(i: Int, o: Int)?` where `i` stands for receiving and `o` for transmitting, both in KB:
+
+``` swift
+
+if let net = SysInfo.Net {
+  print(net)
+}
+
+```
+
+If success, it will print something like `(i: 5012, o: 1051)` which means 5 Megabytes of incoming and 1 Megabytes of outgoing.
+
 ## Issues
 
 We are transitioning to using JIRA for all bugs and support related issues, therefore the GitHub issues has been disabled.
