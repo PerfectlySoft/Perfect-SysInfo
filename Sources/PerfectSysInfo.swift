@@ -24,6 +24,21 @@ import Darwin
 
 extension String {
 
+  /// parse tokens from a string, splitting by delimiters
+  /// - parameters: delimiters, defined as strtok()
+  internal func asTokens(delimiters: String = " \t\n\r") -> [String] {
+    var array = [String]()
+    guard let str = strdup(self) else { return array }
+    var tok = strtok(str, delimiters)
+    let NULL = UnsafeMutablePointer<Int8>(bitPattern: 0)
+    while let found = tok {
+      array.append(String(cString: found))
+      tok = strtok(NULL, delimiters)
+    }//end while
+    free(str)
+    return array
+  }//end func
+
   internal var trimmed: String {
     var buf = [UInt8]()
     var trimming = true
@@ -75,9 +90,9 @@ extension String {
     }
   }
   /// equivalent to hasPrefix
-  /// - parameters: 
+  /// - parameters:
   ///   - prefix: the prefix string to looking for
-  /// - returns: 
+  /// - returns:
   ///   true if the string has such a prefix
   internal func match(prefix: String) -> Bool {
     if prefix == self { return true }
@@ -93,7 +108,7 @@ extension String {
   }//end match
 
   /// translate a labeless / space delimited string into a dictionry with the given definition
-  /// - parameters: 
+  /// - parameters:
   ///   - definition: an array for the expected string definition, each element is a name/type pair, which type only means string or non-string simply because only string needs quote in output
   /// - returns: dictionary
   internal func parse(definition: [(keyName: String, isString: Bool )]) -> [String: String] {
@@ -112,6 +127,52 @@ extension String {
 
 public class SysInfo {
 
+  public static var Disk: [String: [String: UInt64]] {
+    get {
+      var stats: [String: [String: UInt64]] = [:]
+      #if os(Linux)
+        guard let content = "/proc/diskstats".asFile else { return stats }
+        content.asLines.forEach { line in
+          let tokens = line.asTokens()
+          guard tokens.count > 13 else { return }
+          /*
+           0 - major number
+           1 - minor mumber
+           2 - device name
+           3 - reads completed successfully
+           4 - reads merged
+           5 - sectors read
+           6 - time spent reading (ms)
+           7 - writes completed
+           8 - writes merged
+           9 - sectors written
+           10 - time spent writing (ms)
+           11 - I/Os currently in progress
+           12 - time spent doing I/Os (ms)
+           13 - weighted time spent doing I/Os (ms)
+           */
+          let title = tokens[2]
+          var sta: [String: UInt64] = [:]
+          let keys = ["major", "minor", "name",
+                      "reads_completed", "reads_merged", "sectors_read",
+                      "reading_ms", "writes_completed", "writes_merged",
+                      "sectors_written", "writing_ms", "io_in_progress",
+                      "io_ms", "weighte_io_ms"]
+          for i in 3 ... 13 {
+            sta[keys[i]] = UInt64(tokens[i]) ?? 0
+          }//next i
+          stats[title] = sta
+        }//next
+      #else
+        do {
+          stats = try devstats()
+        }catch {
+          // skipped the error
+        }
+      #endif
+      return stats
+    }
+  }
   #if os(Linux)
   #else
   internal static var interfaces: [String]   {

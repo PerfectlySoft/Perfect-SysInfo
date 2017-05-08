@@ -45,23 +45,38 @@ class PerfectSysInfoTests: XCTestCase {
     }
     print(net)
   }
-
+  func testDISK() {
+    let io = SysInfo.Disk
+    guard io.count > 0 else {
+      XCTFail("DISK FAULT")
+      return
+    }
+    print(io)
+  }
   func testLEAK() {
     let exp = self.expectation(description: "leak")
     for _ in 0 ... 1000 {
       _ = SysInfo.CPU
       _ = SysInfo.Memory
       _ = SysInfo.Net
+      #if os(Linux)
+        _ = SysInfo.Disk
+      #else
+      autoreleasepool(invoking: {
+        _ = SysInfo.Disk
+      })
+      #endif
       usleep(10000)
     }
     exp.fulfill()
     waitForExpectations(timeout: 1) { _ in }
   }
-  
+
   static var allTests = [
     ("testCPU", testCPU),
     ("testMEM", testMEM),
     ("testNET", testNET),
+    ("testDISK", testDISK),
     ("testLEAK", testLEAK),
     ]
 }
