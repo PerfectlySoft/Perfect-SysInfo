@@ -101,8 +101,8 @@ print(SysInfo.CPU)
     ["user": 17708, "idle": 9708996, "nice": 0, "system": 15950],
   "cpu4":
     ["user": 647701, "idle": 8800643, "nice": 0, "system": 294544],
-  "cpu6": ["user": 656136, "idle": 8793002, "nice": 0, "system": 293640]]
-*/
+  "cpu6": ["user": 656136, "idle": 8793002, "nice": 0, "system": 293640]
+]
 
 ```
 
@@ -123,7 +123,7 @@ print(SysInfo.Memory)
 
 比如调用上述命令后，一个典型的Linux系统将输出如下报告（1G内存，大约599兆可用）：
 
-```
+``` swift
 [
   "Inactive": 283, "MemTotal": 992, "CmaFree": 0,
   "VmallocTotal": 33554431, "CmaTotal": 0, "Mapped": 74,
@@ -145,7 +145,7 @@ print(SysInfo.Memory)
 
 而下面则是一个典型的mac OS X内存摘要，看起来还有 4.5GB 空闲内存：
 
-```
+``` swift
 [
   "hits": 0, "faults": 3154324, "cow": 31476,
   "wired": 3576, "reactivations": 366, "zero_filled": 2296248,
@@ -170,7 +170,7 @@ if let net = SysInfo.Net {
 
 如果调用成功，则会根据操作系统是 mac 还是 linux 不同，输出以下结果:
 
-```
+``` swift
 // 典型的 mac OS X 网络统计结果，可以看到其中真正的网卡"en0"收到了1MB数据。
 [
 	"p2p0": ["o": 0, "i": 0], 

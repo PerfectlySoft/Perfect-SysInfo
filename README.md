@@ -100,8 +100,8 @@ print(SysInfo.CPU)
     ["user": 17708, "idle": 9708996, "nice": 0, "system": 15950],
   "cpu4":
     ["user": 647701, "idle": 8800643, "nice": 0, "system": 294544],
-  "cpu6": ["user": 656136, "idle": 8793002, "nice": 0, "system": 293640]]
-*/
+  "cpu6": ["user": 656136, "idle": 8793002, "nice": 0, "system": 293640]
+]
 
 ```
 
@@ -121,7 +121,7 @@ print(SysInfo.Memory)
 
 Typical Linux memory looks like this ( 1G total memory with about 599MB available):
 
-```
+``` swift
 [
   "Inactive": 283, "MemTotal": 992, "CmaFree": 0,
   "VmallocTotal": 33554431, "CmaTotal": 0, "Mapped": 74,
@@ -143,7 +143,7 @@ Typical Linux memory looks like this ( 1G total memory with about 599MB availabl
 
 And here is a typical mac OS X memory summary, which indicates that there is about 4.5GB free memory:
 
-```
+``` swift
 [
   "hits": 0, "faults": 3154324, "cow": 31476,
   "wired": 3576, "reactivations": 366, "zero_filled": 2296248,
@@ -167,7 +167,7 @@ if let net = SysInfo.Net {
 
 If success, it will print something like these mac  / linux outputs:
 
-```
+``` swift
 // typical mac os x network summary, where the only physical network
 // adapter "en0" has 1MB incoming data totally.
 
