@@ -23,7 +23,7 @@
 
 <p align="center">
     <a href="https://developer.apple.com/swift/" target="_blank">
-        <img src="https://img.shields.io/badge/Swift-3.0-orange.svg?style=flat" alt="Swift 3.0">
+        <img src="https://img.shields.io/badge/Swift-4.0-orange.svg?style=flat" alt="Swift 4.0">
     </a>
     <a href="https://developer.apple.com/swift/" target="_blank">
         <img src="https://img.shields.io/badge/Platforms-OS%20X%20%7C%20Linux%20-lightgray.svg?style=flat" alt="Platforms OS X | Linux">
@@ -43,7 +43,7 @@
 
 该软件使用SPM进行编译和测试，本软件也是[Perfect](https://github.com/PerfectlySoft/Perfect)项目的一部分，但也可以独立使用。
 
-请确保您的系统已经安装了Swift 3.1工具链。
+请确保您的系统已经安装了Swift 4.1工具链。
 
 
 ## 快速上手
@@ -52,8 +52,12 @@
 
 ``` swift
 
-.Package(url: "https://github.com/PerfectlySoft/Perfect-SysInfo.git", majorVersion: 1)
+.package(url: "https://github.com/PerfectlySoft/Perfect-SysInfo.git", from: "3.0.0")
 
+/// target section
+.target(
+  // name: "your app's name",
+  dependencies: ["PerfectSysInfo"]),
 ```
 
 在源程序中导入函数库：

@@ -23,7 +23,7 @@
 
 <p align="center">
     <a href="https://developer.apple.com/swift/" target="_blank">
-        <img src="https://img.shields.io/badge/Swift-3.0-orange.svg?style=flat" alt="Swift 3.0">
+        <img src="https://img.shields.io/badge/Swift-4.0-orange.svg?style=flat" alt="Swift 4.0">
     </a>
     <a href="https://developer.apple.com/swift/" target="_blank">
         <img src="https://img.shields.io/badge/Platforms-OS%20X%20%7C%20Linux%20-lightgray.svg?style=flat" alt="Platforms OS X | Linux">
@@ -43,7 +43,7 @@ This project provides a Swift library to monitor system performance.
 
 This package builds with Swift Package Manager and is part of the [Perfect](https://github.com/PerfectlySoft/Perfect) project but can also be used as an independent module.
 
-Ensure you have installed and activated the latest Swift 3.1 tool chain.
+Ensure you have installed and activated the latest Swift 4.0 tool chain.
 
 ## Quick Start
 
@@ -51,8 +51,12 @@ Add Perfect SysInfo library to your Package.swift:
 
 ``` swift
 
-.Package(url: "https://github.com/PerfectlySoft/Perfect-SysInfo.git", majorVersion: 1)
+.package(url: "https://github.com/PerfectlySoft/Perfect-SysInfo.git", from: "3.0.0")
 
+/// target section
+.target(
+  // name: "your app's name",
+  dependencies: ["PerfectSysInfo"]),
 ```
 
 Add library header to your source code:

@@ -53,6 +53,7 @@ class PerfectSysInfoTests: XCTestCase {
     }
     print(io)
   }
+/*
   func testLEAK() {
     let exp = self.expectation(description: "leak")
     for _ in 0 ... 1000 {
@@ -71,12 +72,12 @@ class PerfectSysInfoTests: XCTestCase {
     exp.fulfill()
     waitForExpectations(timeout: 1) { _ in }
   }
-
+*/
   static var allTests = [
     ("testCPU", testCPU),
     ("testMEM", testMEM),
     ("testNET", testNET),
     ("testDISK", testDISK),
-    ("testLEAK", testLEAK),
+    //("testLEAK", testLEAK),
     ]
 }

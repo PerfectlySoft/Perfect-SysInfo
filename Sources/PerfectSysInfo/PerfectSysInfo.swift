@@ -57,10 +57,9 @@ extension String {
   /// split a string into an array of lines
   internal var asLines: [String] {
     get {
-      return self.utf8
-        .split(separator: 10)
+      return self.split(separator: Character("\n"))
         .filter { $0.count > 0 }
-        .map { String(describing: $0) }
+        .map(String.init)
     }
   }
 
@@ -362,8 +361,8 @@ public class SysInfo {
       #if os(Linux)
         guard let content = "/proc/meminfo".asFile else { return [:] }
         var stat:[String: Int] = [:]
-        content.utf8.split(separator: 10).forEach { line in
-          let lines = line.split(separator: 58).map { String(describing: $0) }
+        content.split(separator: Character("\n")).forEach { line in
+          let lines:[String] = line.split(separator: Character(":")).map(String.init)
           let key = lines[0]
           guard lines.count > 1, let str = strdup(lines[1]) else { return }
           if let kb = strstr(str, "kB") {
